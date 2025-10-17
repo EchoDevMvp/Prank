@@ -5,9 +5,16 @@ from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 import keyboard
 import time
 import os
-import win32con
 import urllib.request
 from PIL import Image, ImageTk
+import threading
+
+# Gestion des erreurs d'importation
+try:
+    import win32con
+except ImportError:
+    print("Erreur : pywin32 non installé. Veuillez installer pywin32.")
+    exit(1)
 
 def set_volume_to_max():
     try:
@@ -24,7 +31,7 @@ def play_error_sound():
         time.sleep(1)
 
 def on_key_event(event):
-    if event.name.lower() == 'r':  # Restaurer la fermeture avec R
+    if event.name.lower() == 'r':  # Fermeture avec R restaurée
         root.quit()
         return False
     return True
@@ -50,38 +57,38 @@ def update_text():
             timer_text = f"\n\n{TEMPS RESTANT : {minutes:02d}:{seconds:02d}}\n"  # Timer en gros
             full_text = f"""
 Que s'est-il passé sur mon ordinateur ?
-TOUS vos documents, photos, vidéos et bases de données sont DÉSORMAIS CRYPTÉS ! Vos fichiers sont piégés, et chaque seconde qui passe rapproche leur destruction totale. Aucun espoir de récupération sans nous, et nous ne plaisantons pas !
+TOUS vos documents, photos, vidéos et bases de données sont DÉSORMAIS CRYPTÉS ! Vos fichiers sont piégés, et chaque seconde qui passe rapproche leur destruction totale. Aucun espoir de récupération sans nous !
 
 Puis-je récupérer mes fichiers ?
-OUI, mais le temps vous est compté ! Nous, Julie Savineaux, née en 1986, aujourd'hui âgée de 39 ans en 2025, garantissons une récupération – si vous agissez VITE. Sinon, vos données seront perdues à jamais dans l'obscurité !
+OUI, mais le temps vous est compté ! Nous, Julie Savineaux, née en 1986, 39 ans en 2025, garantissons une récupération – si vous agissez VITE. Sinon, vos données seront perdues à jamais !
 
 Comment payer ?
-Le paiement se fait UNIQUEMENT en Bitcoin. Envoyez la somme exigée à l'adresse fictive : 1FakeWalletAddress1234567890ABCDEF. Attention : vos fichiers seront EFFACÉS dans {timer_text} !
+Le paiement se fait UNIQUEMENT en Bitcoin. Envoyez la somme à : 1FakeWalletAddress1234567890ABCDEF. Vos fichiers seront EFFACÉS dans {timer_text} !
 
 {timer_text}
-AGISSEZ OU TOUT SERA PERDU !
+AGISSEZ OU TOUT EST PERDU !
 """
         else:
             timer_text = f"\n\n{TIME LEFT: {minutes:02d}:{seconds:02d}}\n"  # Timer en gros
             full_text = f"""
 What Happened to My Computer?
-ALL your documents, photos, videos, and databases are NOW ENCRYPTED! Your files are trapped, and every passing second brings them closer to TOTAL DESTRUCTION. No hope of recovery without us – and we MEAN it!
+ALL your documents, photos, videos, and databases are NOW ENCRYPTED! Your files are trapped, and every second brings TOTAL DESTRUCTION closer. No recovery without us!
 
 Can I Recover My Files?
-YES, but time is running out! We, Julie Savineaux, born in 1986, now 39 years old in 2025, guarantee recovery – IF you act FAST. Otherwise, your data will vanish into the abyss FOREVER!
+YES, but time is running out! Julie Savineaux, born 1986, 39 in 2025, guarantees recovery – ACT FAST or lose everything forever!
 
 How Do I Pay?
-Payment is accepted in Bitcoin ONLY. Send the demanded amount to the fake wallet address: 1FakeWalletAddress1234567890ABCDEF. WARNING: your files will be WIPED OUT in {timer_text}!
+Bitcoin ONLY. Send to: 1FakeWalletAddress1234567890ABCDEF. Files WIPED OUT in {timer_text}!
 
 {timer_text}
 ACT NOW OR LOSE EVERYTHING!
 """
         text_canvas.delete("all")
-        text_canvas.create_text(300, 200, text=full_text, font=("Arial", 12, "bold"), justify="left", anchor="center")  # Police plus grande
+        text_canvas.create_text(300, 200, text=full_text, font=("Arial", 14, "bold"), justify="left", anchor="center")  # Timer plus grand
         if remaining > 0:
             root.after(1000, update_timer)
         else:
-            root.quit()  # Fermeture automatique à la fin du timer
+            root.quit()
 
     # Détection de fermeture anormale (Alt+F4 ou redémarrage)
     def check_abnormal_exit():
@@ -96,13 +103,15 @@ ACT NOW OR LOSE EVERYTHING!
     update_timer()
     check_abnormal_exit()
 
+# Initialisation de la fenêtre
 root = tk.Tk()
 root.title("Ransomware Team Viewer")
 root.configure(bg='#8B0000')
 root.attributes('-fullscreen', True)
 root.focus_force()
 
-keyboard.hook(on_key_event)
+# Hook clavier corrigé
+keyboard.on_press(on_key_event)
 
 main_frame = tk.Frame(root, bg='#8B0000')
 main_frame.pack(fill='both', expand=True, padx=50, pady=50)
@@ -152,6 +161,8 @@ threading.Thread(target=play_error_sound, daemon=True).start()
 
 try:
     root.mainloop()
+except Exception as e:
+    print(f"Erreur fatale : {e}")
 finally:
     keyboard.unhook_all()
     winsound.PlaySound(None, winsound.SND_PURGE)
